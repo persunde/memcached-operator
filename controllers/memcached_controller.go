@@ -18,8 +18,10 @@ package controllers
 
 import (
 	"context"
+	"time"
 
 	"github.com/go-logr/logr"
+	"github.com/prometheus/common/log"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -28,7 +30,6 @@ import (
 	cachev1alpha1 "github.com/example-inc/memcached-operator/api/v1alpha1"
 
 	appsv1 "k8s.io/api/apps/v1"
-	//import "time"
 )
 
 // MemcachedReconciler reconciles a Memcached object
@@ -53,18 +54,20 @@ func (r *MemcachedReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	err := r.Get(ctx, req.NamespacedName, memcached)
 
 	// Reconcile failed due to error - requeue
-	if err == nil {
+	if err != nil {
+		log.Error(err, "Reconcile failed due to error - requeue")
 		return ctrl.Result{}, err
 	}
 
 	// Requeue for any reason other than an error
 	//return ctrl.Result{Requeue: true}, nil
 
+	log.Error("Reconcile success - requeue after 5 seconds")
 	// Reconcile for any reason other than an error after 5 seconds
-	//return ctrl.Result{RequeueAfter: time.Second*5}, nil
+	return ctrl.Result{RequeueAfter: time.Second * 5}, nil
 
 	// Reconcile successful - don't requeue
-	return ctrl.Result{}, nil
+	//return ctrl.Result{}, nil
 }
 
 func (r *MemcachedReconciler) SetupWithManager(mgr ctrl.Manager) error {
