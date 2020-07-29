@@ -19,6 +19,7 @@ package main
 import (
 	"flag"
 	"os"
+	"time"
 
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
@@ -55,6 +56,7 @@ func main() {
 
 	ctrl.SetLogger(zap.New(zap.UseDevMode(true)))
 
+	duration := time.Duration(5) * time.Second
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
 		Scheme:             scheme,
 		MetricsBindAddress: metricsAddr,
@@ -62,6 +64,7 @@ func main() {
 		LeaderElection:     enableLeaderElection,
 		LeaderElectionID:   "f1c5ece8.example.com",
 		Namespace:          "",
+		SyncPeriod:         &duration, // SyncPeriod is 5 seconds -> call Reconcile() every 5 sec
 	})
 	if err != nil {
 		setupLog.Error(err, "unable to start manager")

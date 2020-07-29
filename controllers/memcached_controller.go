@@ -44,7 +44,7 @@ type MemcachedReconciler struct {
 // +kubebuilder:rbac:groups=core,resources=pods,verbs=get;list;
 
 func (r *MemcachedReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
-	ctx := context.Background()
+	ctx := context.Background() // this context will NOT trigger a new Reconcile. It is often used to update Status about the result from a Reconcile action.
 	log := r.Log.WithValues("memcached", req.NamespacedName)
 
 	// Fetch the Memcached instance
