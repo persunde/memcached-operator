@@ -34,7 +34,6 @@ type WebserverSpec struct {
 
 // WebserverStatus defines the observed state of Webserver
 type WebserverStatus struct {
-	//Nodes []string `json:"nodes"`
 	Latency json.Number `json:"latency"`
 }
 
