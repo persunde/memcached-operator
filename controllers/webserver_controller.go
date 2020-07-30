@@ -16,8 +16,11 @@ package controllers
 
 import (
 	"context"
-	"encoding/json"
-	"math/rand"
+	"crypto/tls"
+	"fmt"
+	"log"
+	"net/http"
+	"net/http/httptrace"
 	"strconv"
 	"time"
 
@@ -85,8 +88,10 @@ func (r *WebserverReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		return ctrl.Result{}, err
 	}
 
-	latencyJSONNumber := getLatency()
-	latencyFloat64, err := latencyJSONNumber.Float64()
+	latencyMs := getLatencyMilliseconds()
+	latencyMsString := strconv.FormatInt(latencyMs, 10)
+	fullLogString := "\n\n!!!! LatencyMS value: " + latencyMsString + " ----------\n\n"
+	log.Info(fullLogString)
 
 	// webserver.Status.Latency = latency
 	// err = r.Status().Update(ctx, webserver)
@@ -96,8 +101,8 @@ func (r *WebserverReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	// }
 
 	// Update Status.Latency if needed
-	if latencyFloat64 > 2.5 {
-		log.Info("Latency is larger than 0.5")
+	if latencyMs > 150.0 {
+		log.Info("Latency is larger than 150.0")
 		// TODO: increase number of pods
 		newSize := webserver.Spec.Size + 1
 		found.Spec.Replicas = &newSize
@@ -112,7 +117,7 @@ func (r *WebserverReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	}
 
 	// Update Status.Latency if needed
-	if latencyFloat64 < 1.5 {
+	if latencyMs < 50 {
 		log.Info("Latency is less than 1.5. latencyFloat64: <later>")
 		// Update the Webserver status with the pod names
 		// List the pods for this webserver's deployment
@@ -144,7 +149,7 @@ func (r *WebserverReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		}
 	}
 
-	webserver.Status.Latency = latencyJSONNumber.String()
+	webserver.Status.Latency = strconv.FormatInt(latencyMs, 10)
 	err = r.Status().Update(ctx, webserver)
 	if err != nil {
 		log.Error(err, "Failed to update Webserver status")
@@ -198,7 +203,7 @@ func labelsForWebserver(name string) map[string]string {
 	return map[string]string{"app": "webserver", "webserver_cr": name}
 }
 
-func getLatency() json.Number {
+func getLatencyMilliseconds() int64 {
 	/** TODO:
 	* 1. Store time before
 	* 2. ping webserver pod
@@ -206,11 +211,48 @@ func getLatency() json.Number {
 	* 4. Calculate latency
 	* 5. Return latency
 	 */
-	min := 0.0
-	max := 5.0
-	latencyFloat := min + rand.Float64()*(max-min)
-	latencyJSONNumber := json.Number(strconv.FormatFloat(latencyFloat, 'f', 4, 64))
-	return latencyJSONNumber
+	// min := 0.0
+	// max := 5.0
+	// latencyFloat := min + rand.Float64()*(max-min)
+	// latencyJSONNumber := json.Number(strconv.FormatFloat(latencyFloat, 'f', 4, 64))
+	url := "https://www.google.com/"
+	latencyMilliseconds := timeGet(url).Milliseconds()
+	return latencyMilliseconds
+}
+
+func timeGet(url string) time.Duration {
+	req, _ := http.NewRequest("GET", url, nil)
+
+	var start, connect, dns, tlsHandshake time.Time
+
+	trace := &httptrace.ClientTrace{
+		DNSStart: func(dsi httptrace.DNSStartInfo) { dns = time.Now() },
+		DNSDone: func(ddi httptrace.DNSDoneInfo) {
+			fmt.Printf("DNS Done: %v\n", time.Since(dns))
+		},
+
+		TLSHandshakeStart: func() { tlsHandshake = time.Now() },
+		TLSHandshakeDone: func(cs tls.ConnectionState, err error) {
+			fmt.Printf("TLS Handshake: %v\n", time.Since(tlsHandshake))
+		},
+
+		ConnectStart: func(network, addr string) { connect = time.Now() },
+		ConnectDone: func(network, addr string, err error) {
+			fmt.Printf("Connect time: %v\n", time.Since(connect))
+		},
+
+		GotFirstResponseByte: func() {
+			fmt.Printf("Time from start to first byte: %v\n", time.Since(start))
+		},
+	}
+
+	req = req.WithContext(httptrace.WithClientTrace(req.Context(), trace))
+	start = time.Now()
+	if _, err := http.DefaultTransport.RoundTrip(req); err != nil {
+		log.Fatal(err)
+	}
+
+	return time.Since(start)
 }
 
 func (r *WebserverReconciler) SetupWithManager(mgr ctrl.Manager) error {
