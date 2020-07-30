@@ -1,7 +1,7 @@
 apiVersion: cache.example.com/v1alpha1
-kind: Memcached
+kind: Webserver
 metadata:
-  name: memcached-sample
+  name: websever-sample
 spec:
   # Add fields here
   size: 3
