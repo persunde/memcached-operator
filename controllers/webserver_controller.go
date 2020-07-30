@@ -177,7 +177,7 @@ func (r *WebserverReconciler) deploymentForWebserver(ws *webserverv1alpha1.Webse
 					Containers: []corev1.Container{{
 						Image: "containerstack/cpustress",
 						Name:  "ws-stresstest",
-						//Command: []string{"memcached", "-m=64", "-o", "modern", "-v"},
+						Args:  []string{"--cpu=2", "--timeout=4800s"},
 						Ports: []corev1.ContainerPort{{
 							ContainerPort: 11211,
 							Name:          "ping",
