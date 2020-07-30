@@ -104,7 +104,7 @@ func (r *WebserverReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	if latencyMs > 150.0 {
 		log.Info("Latency is larger than 150.0")
 		// TODO: increase number of pods
-		newSize := webserver.Spec.Size + 1
+		newSize := *found.Spec.Replicas + 1
 		found.Spec.Replicas = &newSize
 		err = r.Update(ctx, found)
 		if err != nil {
@@ -118,7 +118,7 @@ func (r *WebserverReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 
 	// Update Status.Latency if needed
 	if latencyMs < 50 {
-		log.Info("Latency is less than 1.5. latencyFloat64: <later>")
+		log.Info("Latency is less than 50. latencyMs: " + latencyMsString)
 		// Update the Webserver status with the pod names
 		// List the pods for this webserver's deployment
 		podList := &corev1.PodList{}
@@ -131,14 +131,17 @@ func (r *WebserverReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 			return ctrl.Result{}, err
 		}
 
-		//numPods := len(podList.Items)
-		numPods := podList.Size()
-		log.Info("numPods is: <later>")
-		if numPods > 1 {
-			// TODO: reduce number of pods
-			log.Info("Latency is less than 1.5 AND numPods > 1")
-			newSize := webserver.Spec.Size - 1
+		numPodsLen := len(podList.Items)
+		numPodsSize := podList.Size()
+		numPodsSizeString := strconv.FormatInt(int64(numPodsSize), 10)
+		numPodsLenString := strconv.FormatInt(int64(numPodsLen), 10)
+		log.Info("numPodsLen is: " + numPodsLenString)
+		log.Info("numPodsSize is: " + numPodsSizeString)
+
+		if numPodsLen > 1 {
+			newSize := *found.Spec.Replicas - 1
 			found.Spec.Replicas = &newSize
+			log.Info("New size is: " + strconv.FormatInt(int64(newSize), 10))
 			err = r.Update(ctx, found)
 			if err != nil {
 				log.Error(err, "Failed to update Deployment", "Deployment.Namespace", found.Namespace, "Deployment.Name", found.Name)
@@ -215,7 +218,8 @@ func getLatencyMilliseconds() int64 {
 	// max := 5.0
 	// latencyFloat := min + rand.Float64()*(max-min)
 	// latencyJSONNumber := json.Number(strconv.FormatFloat(latencyFloat, 'f', 4, 64))
-	url := "https://www.google.com/"
+	//url := "https://www.google.com/"
+	url := "https://www.vg.no/"
 	latencyMilliseconds := timeGet(url).Milliseconds()
 	return latencyMilliseconds
 }
