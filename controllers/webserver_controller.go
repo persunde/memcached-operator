@@ -113,7 +113,7 @@ func (r *WebserverReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 
 	// Update Status.Latency if needed
 	if latencyFloat64 < 1.5 {
-		log.Info("Latency is less than 1.5. latencyFloat64: ", latencyFloat64)
+		log.Info("Latency is less than 1.5. latencyFloat64: <later>")
 		// Update the Webserver status with the pod names
 		// List the pods for this webserver's deployment
 		podList := &corev1.PodList{}
@@ -128,7 +128,7 @@ func (r *WebserverReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 
 		//numPods := len(podList.Items)
 		numPods := podList.Size()
-		log.Info("numPods is: ", numPods)
+		log.Info("numPods is: <later>")
 		if numPods > 1 {
 			// TODO: reduce number of pods
 			log.Info("Latency is less than 1.5 AND numPods > 1")
