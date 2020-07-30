@@ -17,8 +17,6 @@ limitations under the License.
 package v1alpha1
 
 import (
-	"encoding/json"
-
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -34,7 +32,8 @@ type WebserverSpec struct {
 
 // WebserverStatus defines the observed state of Webserver
 type WebserverStatus struct {
-	Latency json.Number `json:"latency"`
+	// type: json.Number just dont seem to work, just use string for now
+	Latency string `json:"latency"`
 }
 
 // +kubebuilder:object:root=true

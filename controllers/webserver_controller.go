@@ -144,7 +144,7 @@ func (r *WebserverReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		}
 	}
 
-	webserver.Status.Latency = latencyJSONNumber
+	webserver.Status.Latency = latencyJSONNumber.String()
 	err = r.Status().Update(ctx, webserver)
 	if err != nil {
 		log.Error(err, "Failed to update Webserver status")
