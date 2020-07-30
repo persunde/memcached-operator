@@ -143,12 +143,12 @@ func (r *MemcachedReconciler) deploymentForMemcached(m *cachev1alpha1.Memcached)
 				},
 				Spec: corev1.PodSpec{
 					Containers: []corev1.Container{{
-						Image:   "memcached:1.4.36-alpine",
-						Name:    "memcached",
-						Command: []string{"memcached", "-m=64", "-o", "modern", "-v"},
+						Image: "containerstack/cpustress",
+						Name:  "ws-stresstest",
+						//Command: []string{"memcached", "-m=64", "-o", "modern", "-v"},
 						Ports: []corev1.ContainerPort{{
 							ContainerPort: 11211,
-							Name:          "memcached",
+							Name:          "ping",
 						}},
 					}},
 				},
@@ -177,7 +177,7 @@ func getPodNames(pods []corev1.Pod) []string {
 
 func (r *MemcachedReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&cachev1alpha1.Memcached{}).
-		Owns(&appsv1.Deployment{}).
+		For(&cachev1alpha1.Memcached{}). // these two replaces Watches(...) function that is used in older documentation and guides/blogs. Might be other functions that I can also use!
+		Owns(&appsv1.Deployment{}).      // these two replaces Watches(...) function that is used in older documentation and guides/blogs. Might be other functions that I can also use!
 		Complete(r)
 }
