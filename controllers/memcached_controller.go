@@ -143,12 +143,12 @@ func (r *MemcachedReconciler) deploymentForMemcached(m *cachev1alpha1.Memcached)
 				},
 				Spec: corev1.PodSpec{
 					Containers: []corev1.Container{{
-						Image: "containerstack/cpustress",
-						Name:  "ws-stresstest",
-						//Command: []string{"memcached", "-m=64", "-o", "modern", "-v"},
+						Image:   "memcached:1.4.36-alpine",
+						Name:    "memcached",
+						Command: []string{"memcached", "-m=64", "-o", "modern", "-v"},
 						Ports: []corev1.ContainerPort{{
 							ContainerPort: 11211,
-							Name:          "ping",
+							Name:          "memcached",
 						}},
 					}},
 				},
