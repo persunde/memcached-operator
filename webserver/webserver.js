@@ -7,7 +7,8 @@ function getRandomInt(max) {
     return Math.floor(Math.random() * Math.floor(max));
 }
 
-http.createServer(async function(request, response) {
+const server = http.createServer();
+server.on('request', async (req, res) => {
     const max = 10;
     const randInt = getRandomInt(max)
     await sleep(100 * randInt);
@@ -15,5 +16,6 @@ http.createServer(async function(request, response) {
     
     response.writeHead(200);
     response.end("Hello! My name is " + os.hostname() + ". I have served "+ totalrequests + " requests so far.\n");
-}).listen(8080)
+});
 
+server.listen(8080);

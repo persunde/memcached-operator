@@ -1,3 +1,3 @@
 FROM BASEIMAGE
-COPY server.js /server.js
+COPY webserver.js /server.js
 CMD ["node", "/server.js"]
