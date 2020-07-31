@@ -8,18 +8,12 @@ ML_PLATFORMS=linux/amd64,linux/arm,linux/arm64
 VERSION?=v0.0.1
 BASEIMAGE=luxas/node-$(ARCH):latest
 
+IMG=$(REGISTRY)/$(IMAGE)-$(ARCH):$(VERSION)
+
 build:
 	cp Dockerfile *.js $(TEMP_DIR)
 	cd $(TEMP_DIR) && sed -i "s|BASEIMAGE|$(BASEIMAGE)|g" Dockerfile
-	docker build -t $(REGISTRY)/$(IMAGE)-$(ARCH):$(VERSION) $(TEMP_DIR)
+	docker build -t ${IMG} $(TEMP_DIR)
 
-push-%:
-	$(MAKE) ARCH=$* build
-	docker push $(REGISTRY)/$(IMAGE)-$*:$(VERSION)
-
-push: ./manifest-tool $(addprefix push-,$(ALL_ARCH))
-	./manifest-tool push from-args --platforms $(ML_PLATFORMS) --template $(REGISTRY)/$(IMAGE)-ARCH:$(VERSION) --target $(REGISTRY)/$(IMAGE):$(VERSION)
-
-./manifest-tool:
-	curl -sSL https://github.com/estesp/manifest-tool/releases/download/v0.7.0/manifest-tool-linux-amd64 > manifest-tool
-	chmod +x manifest-tool
+docker-push:
+	docker push ${IMG}
