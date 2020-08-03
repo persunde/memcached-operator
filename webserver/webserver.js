@@ -15,7 +15,7 @@ server.on('request', async (req, res) => {
     totalrequests += 1
 
     res.writeHead(200);
-    res.end("Hello! My name is " + os.hostname() + ". I have served "+ totalrequests + " requests so far.\n");
+    res.end("Hello! My name is " + os.hostname() + ". I have served " + totalrequests + " requests so far.\n");
 });
 
 server.listen(8080);

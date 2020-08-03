@@ -54,7 +54,7 @@ func (r *WebserverReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	log := r.Log.WithValues("webServer", req.NamespacedName)
 
 	// Fetch the Webserver instance
-	webserver := &webserverv1alpha1.Webserver{} // TODO: update schema
+	webserver := &webserverv1alpha1.Webserver{}
 	err := r.Get(ctx, req.NamespacedName, webserver)
 	if err != nil {
 		if errors.IsNotFound(err) {
@@ -101,9 +101,8 @@ func (r *WebserverReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	// }
 
 	// Update Status.Latency if needed
-	if latencyMs > 150.0 {
-		log.Info("Latency is larger than 150.0")
-		// TODO: increase number of pods
+	if latencyMs >= 44 {
+		log.Info("Latency is larger than 44. Latency: " + latencyMsString)
 		newSize := *found.Spec.Replicas + 1
 		found.Spec.Replicas = &newSize
 		err = r.Update(ctx, found)
@@ -113,11 +112,10 @@ func (r *WebserverReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		}
 		// Spec updated - return and requeue
 		return ctrl.Result{RequeueAfter: time.Second * 5}, nil
-
 	}
 
 	// Update Status.Latency if needed
-	if latencyMs < 50 {
+	if latencyMs <= 42 {
 		log.Info("Latency is less than 50. latencyMs: " + latencyMsString)
 		// Update the Webserver status with the pod names
 		// List the pods for this webserver's deployment
@@ -132,14 +130,11 @@ func (r *WebserverReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		}
 
 		numPodsLen := len(podList.Items)
-		numPodsSize := podList.Size()
-		numPodsSizeString := strconv.FormatInt(int64(numPodsSize), 10)
 		numPodsLenString := strconv.FormatInt(int64(numPodsLen), 10)
 		log.Info("numPodsLen is: " + numPodsLenString)
-		log.Info("numPodsSize is: " + numPodsSizeString)
 
 		if numPodsLen > 1 {
-			newSize := *found.Spec.Replicas - 1
+			newSize := int32(numPodsLen) - 1
 			found.Spec.Replicas = &newSize
 			log.Info("New size is: " + strconv.FormatInt(int64(newSize), 10))
 			err = r.Update(ctx, found)
@@ -183,11 +178,10 @@ func (r *WebserverReconciler) deploymentForWebserver(ws *webserverv1alpha1.Webse
 				},
 				Spec: corev1.PodSpec{
 					Containers: []corev1.Container{{
-						Image: "containerstack/cpustress",
-						Name:  "ws-stresstest",
-						Args:  []string{"--cpu=2", "--timeout=4800s"},
+						Image: "persundecern/webserver-ping-amd64:v0.0.2",
+						Name:  "ws-ping",
 						Ports: []corev1.ContainerPort{{
-							ContainerPort: 11211,
+							ContainerPort: 8080,
 							Name:          "ping",
 						}},
 					}},
