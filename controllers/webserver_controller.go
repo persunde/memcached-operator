@@ -21,6 +21,7 @@ import (
 	"log"
 	"net/http"
 	"net/http/httptrace"
+	"os"
 	"strconv"
 	"time"
 
@@ -101,7 +102,7 @@ func (r *WebserverReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	// }
 
 	// Update Status.Latency if needed
-	if latencyMs >= 44 {
+	if latencyMs >= 800 {
 		log.Info("Latency is larger than 44. Latency: " + latencyMsString)
 		newSize := *found.Spec.Replicas + 1
 		found.Spec.Replicas = &newSize
@@ -115,7 +116,7 @@ func (r *WebserverReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	}
 
 	// Update Status.Latency if needed
-	if latencyMs <= 42 {
+	if latencyMs <= 200 {
 		log.Info("Latency is less than 50. latencyMs: " + latencyMsString)
 		// Update the Webserver status with the pod names
 		// List the pods for this webserver's deployment
@@ -213,7 +214,10 @@ func getLatencyMilliseconds() int64 {
 	// latencyFloat := min + rand.Float64()*(max-min)
 	// latencyJSONNumber := json.Number(strconv.FormatFloat(latencyFloat, 'f', 4, 64))
 	//url := "https://www.google.com/"
-	url := "https://www.vg.no/"
+	webserverServiceSERVICEHOST := os.Getenv("WEBSERVER_SERVICE_SERVICE_HOST")
+	webserverServiceSERVICEPORT := os.Getenv("WEBSERVER_SERVICE_SERVICE_PORT")
+	url := "http://" + webserverServiceSERVICEHOST + ":" + webserverServiceSERVICEPORT
+	//url := "https://www.vg.no/"
 	latencyMilliseconds := timeGet(url).Milliseconds()
 	return latencyMilliseconds
 }
