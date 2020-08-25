@@ -56,6 +56,9 @@ func main() {
 
 	ctrl.SetLogger(zap.New(zap.UseDevMode(true)))
 
+	/**
+	* Sets up the config for the Operator. Which namespace it can watch, how long it's sync-period will be etc.
+	 */
 	duration := time.Second * 60
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
 		Scheme:             scheme,
@@ -71,6 +74,9 @@ func main() {
 		os.Exit(1)
 	}
 
+	/**
+	* The watcher for Memchached CR is added to the Operator
+	 */
 	if err = (&controllers.MemcachedReconciler{
 		Client: mgr.GetClient(),
 		Log:    ctrl.Log.WithName("controllers").WithName("Memcached"),
@@ -80,6 +86,9 @@ func main() {
 		os.Exit(1)
 	}
 
+	/**
+	* The watcher for Webserver CR is added to the Operator
+	 */
 	if err = (&controllers.WebserverReconciler{
 		Client: mgr.GetClient(),
 		Log:    ctrl.Log.WithName("controllers").WithName("Webserver"),
@@ -90,6 +99,9 @@ func main() {
 	}
 	// +kubebuilder:scaffold:builder
 
+	/**
+	* Starts the Operator to actually watch for changes to the CRs
+	 */
 	setupLog.Info("starting manager")
 	if err := mgr.Start(ctrl.SetupSignalHandler()); err != nil {
 		setupLog.Error(err, "problem running manager")
