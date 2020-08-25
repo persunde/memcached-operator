@@ -47,7 +47,7 @@ func (r *MemcachedReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	ctx := context.Background() // this context will NOT trigger a new Reconcile. It is often used to update Status about the result from a Reconcile action.
 	log := r.Log.WithValues("memcached", req.NamespacedName)
 
-	// Fetch the Memcached instance
+	// Fetch the CR instance
 	memcached := &cachev1alpha1.Memcached{}
 	err := r.Get(ctx, req.NamespacedName, memcached)
 	if err != nil {
@@ -83,7 +83,7 @@ func (r *MemcachedReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		return ctrl.Result{}, err
 	}
 
-	// Ensure the deployment size is the same as the spec
+	// Ensure the deployment size is the same as the spec in the CR
 	size := memcached.Spec.Size
 	if *found.Spec.Replicas != size {
 		found.Spec.Replicas = &size
@@ -96,8 +96,7 @@ func (r *MemcachedReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		return ctrl.Result{Requeue: true}, nil
 	}
 
-	// Update the Memcached status with the pod names
-	// List the pods for this memcached's deployment
+	// Get a list of the pods for this CRs deployment
 	podList := &corev1.PodList{}
 	listOpts := []client.ListOption{
 		client.InNamespace(memcached.Namespace),
@@ -109,7 +108,7 @@ func (r *MemcachedReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	}
 	podNames := getPodNames(podList.Items)
 
-	// Update status.Nodes if needed
+	// Update CR's status.Nodes if needed
 	if !reflect.DeepEqual(podNames, memcached.Status.Nodes) {
 		memcached.Status.Nodes = podNames
 		err := r.Status().Update(ctx, memcached)

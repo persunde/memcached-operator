@@ -54,7 +54,7 @@ func (r *WebserverReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	ctx := context.Background() // this context will NOT trigger a new Reconcile. It is often used to update Status about the result from a Reconcile action.
 	log := r.Log.WithValues("webServer", req.NamespacedName)
 
-	// Fetch the Webserver instance
+	// Fetch the CR instance
 	webserver := &webserverv1alpha1.Webserver{}
 	err := r.Get(ctx, req.NamespacedName, webserver)
 	if err != nil {
@@ -101,9 +101,13 @@ func (r *WebserverReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	// 	return ctrl.Result{}, err
 	// }
 
+	// Constant values used as thresholds/limits for scaling up/down
+	latencyScaleUpLimit := int64(900)
+	latencyScaleDownLimit := int64(200)
+
 	// Update Status.Latency if needed
-	if latencyMs >= 800 {
-		log.Info("Latency is larger than 44. Latency: " + latencyMsString)
+	if latencyMs >= latencyScaleUpLimit {
+		log.Info("Latency is larger than " + strconv.FormatInt(latencyScaleUpLimit, 10) + ". Latency: " + latencyMsString)
 		newSize := *found.Spec.Replicas + 1
 		found.Spec.Replicas = &newSize
 		err = r.Update(ctx, found)
@@ -116,8 +120,8 @@ func (r *WebserverReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	}
 
 	// Update Status.Latency if needed
-	if latencyMs <= 200 {
-		log.Info("Latency is less than 50. latencyMs: " + latencyMsString)
+	if latencyMs <= latencyScaleDownLimit {
+		log.Info("Latency is less than " + strconv.FormatInt(latencyScaleDownLimit, 10) + ". latencyMs: " + latencyMsString)
 		// Update the Webserver status with the pod names
 		// List the pods for this webserver's deployment
 		podList := &corev1.PodList{}
@@ -202,6 +206,7 @@ func labelsForWebserver(name string) map[string]string {
 }
 
 func getLatencyMilliseconds() int64 {
+	// TODO: add a timer here, so that it will only check latency max every 5(?) sec
 	/** TODO:
 	* 1. Store time before
 	* 2. ping webserver pod
