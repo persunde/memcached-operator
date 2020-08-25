@@ -23,41 +23,41 @@ import (
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
-// MemcachedSpec defines the desired state of Memcached
-type MemcachedSpec struct {
+// WebserverSpec defines the desired state of Webserver
+type WebserverSpec struct {
 	// +kubebuilder:validation:Minimum=0
-	// Size is the size of the memcached deployment
+	// Size is the size of the webserver deployment
 	Size int32 `json:"size"`
 }
 
-// MemcachedStatus defines the observed state of Memcached
-type MemcachedStatus struct {
-	// Nodes are the names of the memcached pods
-	Nodes []string `json:"nodes"`
+// WebserverStatus defines the observed state of Webserver
+type WebserverStatus struct {
+	// type: json.Number just dont seem to work, just use string for now
+	Latency string `json:"latency"`
 }
 
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
 
-// Memcached is the Schema for the memcacheds API
+// Webserver is the Schema for the webservers API
 // +kubebuilder:subresource:status
-type Memcached struct {
+type Webserver struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   MemcachedSpec   `json:"spec,omitempty"`
-	Status MemcachedStatus `json:"status,omitempty"`
+	Spec   WebserverSpec   `json:"spec,omitempty"`
+	Status WebserverStatus `json:"status,omitempty"`
 }
 
 // +kubebuilder:object:root=true
 
-// MemcachedList contains a list of Memcached
-type MemcachedList struct {
+// WebserverList contains a list of Webservers
+type WebserverList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []Memcached `json:"items"`
+	Items           []Webserver `json:"items"`
 }
 
 func init() {
-	SchemeBuilder.Register(&Memcached{}, &MemcachedList{})
+	SchemeBuilder.Register(&Webserver{}, &WebserverList{})
 }

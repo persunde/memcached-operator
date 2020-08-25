@@ -177,7 +177,7 @@ func getPodNames(pods []corev1.Pod) []string {
 
 func (r *MemcachedReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&cachev1alpha1.Memcached{}).
-		Owns(&appsv1.Deployment{}).
+		For(&cachev1alpha1.Memcached{}). // these two replaces Watches(...) function that is used in older documentation and guides/blogs. Might be other functions that I can also use!
+		Owns(&appsv1.Deployment{}).      // these two replaces Watches(...) function that is used in older documentation and guides/blogs. Might be other functions that I can also use!
 		Complete(r)
 }
